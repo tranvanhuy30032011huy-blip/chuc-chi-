@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Ngày 20/10 Dành Cho Chị</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 50%, #f7accf 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Canvas Pháo Hoa & Trái Tim */
+        #effectsCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Container Bao Bọc Bức Thư - Được dời thấp xuống thêm */
+        .envelope-wrapper {
+            position: relative;
+            margin-top: 100px; /* Hạ thấp bao thư xuống */
+            width: 320px;
+            height: 220px;
+            background-color: #f08080;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            transition: transform 0.5s ease;
+        }
+
+        .envelope-wrapper:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        /* Nắp Bao Thư */
+        .envelope-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 160px solid transparent;
+            border-right: 160px solid transparent;
+            border-top: 125px solid #f49797;
+            transform-origin: top;
+            transition: transform 0.6s ease 0.2s, z-index 0.2s ease 0.4s;
+            z-index: 5;
+        }
+
+        /* Đáy & Cạnh Bao Thư */
+        .envelope-pocket {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 160px solid #f28b8b;
+            border-right: 160px solid #f28b8b;
+            border-bottom: 110px solid #f49797;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 4;
+        }
+
+        /* Tem / Họa tiết khóa phong thư */
+        .stamp {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: #e63946;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            z-index: 6;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: opacity 0.4s ease;
+        }
+
+        /* Thiệp Lời Chúc (Ẩn trong phong thư) */
+        .letter {
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            width: 290px;
+            height: 410px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px 20px 20px 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.3s, opacity 0.5s ease;
+            z-index: 3;
+            opacity: 0;
+            border: 2px dashed #ffb6c1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .letter h1 {
+            color: #d63384;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .typing-text {
+            font-size: 0.95rem;
+            color: #444;
+            line-height: 1.6;
+            text-align: left;
+            margin: 10px 0;
+            min-height: 140px;
+        }
+
+        /* Tên tác giả */
+        .author {
+            text-align: right;
+            font-size: 0.9rem;
+            font-style: italic;
+            color: #d63384;
+            font-weight: 600;
+            margin-bottom: 10px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .heart-btn {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .heart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 65, 108, 0.6);
+        }
+
+        /* Khi Mở Phong Thư - Thiệp trượt lên vừa tầm mắt */
+        .envelope-wrapper.open::before {
+            transform: rotateX(180deg);
+            z-index: 2;
+        }
+
+        .envelope-wrapper.open .stamp {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .envelope-wrapper.open .letter {
+            transform: translateY(-120px); /* Điều chỉnh độ trượt vừa tầm */
+            opacity: 1;
+            z-index: 10;
+        }
+
+        /* Hiệu ứng hoa & bong bóng rơi */
+        .falling-item {
+            position: absolute;
+            top: -50px;
+            user-select: none;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(105vh) rotate(360deg);
+            }
+        }
+
+        .hint-text {
+            position: absolute;
+            bottom: -35px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.95rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="effectsCanvas"></canvas>
+
+    <!-- Bao Thư -->
+    <div class="envelope-wrapper" id="envelope" onclick="openEnvelope()">
+        <div class="stamp">💌</div>
+        <div class="envelope-pocket"></div>
+        
+        <!-- Lá Thư Bên Trong -->
+        <div class="letter" id="letter">
+            <h1>🌸 Mừng 20/10 🌸</h1>
+            <div class="typing-text" id="typewriter"></div>
+            <div class="author" id="authorText">~ Trần Văn Huy ~</div>
+            <button class="heart-btn" onclick="triggerBurst(event)">Gửi Ngàn Yêu Thương ❤️</button>
+        </div>
+
+        <div class="hint-text" id="hint">✨ Bấm vào phong thư để mở ✨</div>
+    </div>
+
+    <script>
+        // Lời chúc dành cho chị
+        const message = "Nhân ngày Phụ nữ Việt Nam 20/10, chúc chị yêu luôn tràn ngập niềm vui, lúc nào cũng xinh đẹp, rạng rỡ, hạnh phúc và gặt hái được thật nhiều thành công trong cuộc sống! Cảm ơn chị vì đã luôn là một người chị vô cùng tuyệt vời! ✨🌷💖";
+        let index = 0;
+        const speed = 40;
+        let isOpen = false;
+
+        // Mở thư
+        function openEnvelope() {
+            if (isOpen) return;
+            isOpen = true;
+
+            const envelope = document.getElementById('envelope');
+            const hint = document.getElementById('hint');
+            
+            envelope.classList.add('open');
+            hint.style.display = 'none';
+
+            // Pháo hoa chào mừng
+            createFireworksBurst();
+
+            // Chạy chữ sau khi lá thư nhô lên
+            setTimeout(typeWriter, 800);
+        }
+
+        // Đánh máy từng chữ
+        function typeWriter() {
+            if (index < message.length) {
+                document.getElementById("typewriter").innerHTML += message.charAt(index);
+                index++;
+                setTimeout(typeWriter, speed);
+            } else {
+                // Hiện tên tác giả sau khi đánh máy xong lời chúc
+                document.getElementById("authorText").style.opacity = "1";
+            }
+        }
+
+        // ----------------- HIỆU ỨNG HOA RƠI -----------------
+        const icons = ['🌸', '🌺', '🌷', '💐', '❤️', '💖', '✨', '🎀'];
+        function createFallingItem() {
+            const item = document.createElement('div');
+            item.classList.add('falling-item');
+            item.innerText = icons[Math.floor(Math.random() * icons.length)];
+            
+            item.style.left = Math.random() * 100 + 'vw';
+            item.style.animationDuration = Math.random() * 3 + 3 + 's';
+            item.style.fontSize = Math.random() * 15 + 15 + 'px';
+            item.style.opacity = Math.random() * 0.7 + 0.3;
+
+            document.body.appendChild(item);
+            setTimeout(() => item.remove(), 6000);
+        }
+        setInterval(createFallingItem, 350);
+
+        // ----------------- CANVAS PHÁO HOA & HẠT LẤP LÁNH -----------------
+        const canvas = document.getElementById('effectsCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 4 + 2;
+                this.velocity = {
+                    x: (Math.random() - 0.5) * 8,
+                    y: (Math.random() - 0.5) * 8
+                };
+                this.alpha = 1;
+                this.friction = 0.96;
+                this.gravity = 0.1;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.015;
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((particle, index) => {
+                if (particle.alpha > 0) {
+                    particle.update();
+                    particle.draw();
+                } else {
+                    particles.splice(index, 1);
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        function createFireworksBurst() {
+            const colors = ['#ff4b2b', '#ff416c', '#ffb6c1', '#ffd700', '#ffffff'];
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            for (let i = 0; i < 80; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(centerX, centerY, color));
+            }
+        }
+
+        function triggerBurst(e) {
+            e.stopPropagation();
+            const colors = ['#ff416c', '#ff4b2b', '#ff69b4', '#ffe4e1'];
+            const x = e.clientX || window.innerWidth / 2;
+            const y = e.clientY || window.innerHeight / 2;
+
+            for (let i = 0; i < 50; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // ----------------- HIỆU ỨNG VỆT TRÁI TIM THEO CON TRỎ CHUỘT -----------------
+        window.addEventListener('mousemove', (e) => {
+            if (Math.random() < 0.3) {
+                const colors = ['#ff69b4', '#ff1493', '#ffc0cb'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(e.clientX, e.clientY, color));
+            }
+        });
+    </script>
+</body>
+</html>
